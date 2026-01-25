@@ -9,18 +9,10 @@
 
 ## About
 
-**Around the World in Books** is a beautiful, interactive platform that helps readers diversify their reading by exploring literature from countries around the globe. Unlike traditional reading trackers, this app combines immersive 3D visualization, AI-powered recommendations, and practical tools to help you actually acquire and read books from diverse cultures.
+**Vicarious** is a beautiful, interactive platform that helps readers diversify their reading by exploring literature from countries around the globe. Unlike traditional reading trackers, this app combines immersive 3D visualization, AI-powered recommendations, and practical tools to help you actually acquire and read books from diverse cultures.
 
 Whether your 2026 resolution is to "read more diversely," "visit every continent through literature," or "discover authors from 50 different countries," this platform turns those goals into actionable, trackable journeys.
 
-### Built for Hackathon: "Commit To Change"
-
-**Category:** Personal Growth & Learning  
-**Special Prize:** Best Use of Opik ($5,000)
-
-This project leverages AI agents and observability tools to provide personalized reading recommendations and track reading progress systematically.
-
----
 
 ## Features
 
@@ -281,85 +273,10 @@ around-the-world-in-books/
 
 ---
 
-## Hackathon Alignment
-
-### Category: Personal Growth & Learning
-
-**How this project helps users grow:**
-
-- **Intellectual growth** through exposure to diverse perspectives and cultures
-- **Goal achievement** by breaking down "read more diversely" into trackable milestones
-- **Self-awareness** through reading reflections and progress analysis
-- **Consistent learning** with AI-powered recommendations and motivation
-
-### Judging Criteria Match
-
-| Criterion | How We Address It |
-| ----------- | ------------------- |
-| **Functionality** | Fully working app with globe, tracking, themes, authentication |
-| **Real-world relevance** | Addresses common New Year's resolution, practical book acquisition tools |
-| **Use of LLMs/Agents** | AI reading coach, book recommender, reflection generator (in development) |
-| **Evaluation & Observability** | Opik integration planned for tracking recommendation quality and user engagement |
-| **Goal Alignment** | Clearly helps users learn and grow through diverse reading |
-
-### Opik Integration Plan (Best Use of Opik Prize)
-
-- **Recommendation quality tracking** - LLM-as-judge evaluates if suggestions are relevant
-- **User engagement metrics** - Track which recommendations lead to actual book reads
-- **A/B testing** - Compare different prompting strategies for the AI coach
-- **Goal completion tracking** - Monitor progress toward reading diversity goals
-- **Performance monitoring** - Response time, user satisfaction scores
-- **Experiment dashboards** - Visual representation for judging
-
----
-
-## Roadmap
-
-### Phase 1: Core Platform (Completed)
-
-- [x] 3D interactive globe
-- [x] Book tracking system
-- [x] Reading passport with achievements
-- [x] Theming system (3 themes, dark/light mode)
-- [x] User authentication and backend
-- [x] Responsive design
-
-### Phase 2: AI Agent Features (In Progress)
-
-- [ ] AI reading coach with personalized recommendations
-- [ ] Intelligent book recommender with cultural context
-- [ ] Reading goal optimization
-- [ ] Reflection generator with discussion questions
-
-### Phase 3: Practical Tools (Planned)
-
-- [ ] Bookshop finder (Google Places API)
-- [ ] Library finder with availability checking
-- [ ] Online alternatives integration (Bookshop.org, Libby)
-- [ ] Map visualization for nearby locations
-
-### Phase 4: Observability & Optimization (Planned)
-
-- [ ] Opik integration for experiment tracking
-- [ ] LLM-as-judge evaluation system
-- [ ] A/B testing framework
-- [ ] Analytics dashboard for recommendations
-
-### Phase 5: Enhanced Features (Future)
-
-- [ ] Social features (share reading journey, follow friends)
-- [ ] Reading challenges (join community goals)
-- [ ] Book clubs (discuss books with other readers)
-- [ ] Export reading data (CSV, JSON, Goodreads sync)
-
----
-
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ---
-
-**Happy Reading! 📚🌍**
 
 *Turn your New Year's resolution into a journey around the world—one book at a time.*
