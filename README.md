@@ -69,48 +69,44 @@ Whether your 2026 resolution is to "read more diversely," "visit every continent
 
 ---
 
-### Upcoming AI Agent Features (In Development)
+### AI Agent Features
 
 #### AI Reading Coach
 
 - **Personalized recommendations** based on your reading history and preferences
 - **Country suggestions** to help you explore underrepresented regions
-- **Reading goal optimization** - breaks down ambitious goals into achievable milestones
-- **Motivational nudges** - "You're 3 countries away from completing Africa!"
-- **Progress analysis** - identifies patterns in your reading habits
+- **Smart reasoning** - AI explains why each book is recommended
+- **Cultural context** - Insights about authors, countries, and literary traditions
+- **Difficulty levels** - Suggests books matching your reading pace
 
 #### Intelligent Book Recommender
 
 - **Smart suggestions** - "You loved *Things Fall Apart* (Nigeria). Try *Half of a Yellow Sun* or explore Ghana next..."
-- **Cultural context** - AI-generated insights about authors, countries, and literary traditions
-- **Diversity analysis** - ensures balanced representation across regions and genres
-- **Difficulty adaptation** - suggests books matching your reading pace
+- **Diversity analysis** - Ensures balanced representation across regions and genres
+- **Real-time recommendations** - Get new suggestions anytime with one click
 
 #### Bookshop & Library Finder
 
 - **Find nearby bookstores** using Google Places API
-- **Locate libraries** with real-time availability checking
-- **Book availability** via Open Library and WorldCat APIs
+- **Locate libraries** with distance and ratings
+- **Book availability** via Google Books API
 - **Distance & ratings** for local bookshops and libraries
 - **Online alternatives** - links to Bookshop.org, Libby, Open Library
-- **Map integration** - visualize locations on an interactive map
-- **One-click directions** to physical locations
+- **One-click directions** to physical locations via Google Maps
 
-#### Reflection Generator
+#### User Location Management
 
-- **Personalized discussion questions** after finishing a book
-- **Journal prompts** to deepen understanding of cultural themes
-- **Reading insights** - what patterns or themes did you notice?
-- **Comparative analysis** - how does this book compare to others from the region?
+- **Browser geolocation** - Use your current location automatically
+- **Manual entry** - Set your city or coordinates
+- **Saved preferences** - Location stored in your profile
 
 #### Opik Observability Integration
 
 - **Track recommendation quality** with LLM-as-judge evaluations
 - **Monitor user engagement** - which recommendations led to actual reads?
-- **A/B testing** different prompting strategies
-- **Performance metrics** - response time, user satisfaction, goal completion rates
-- **Experiment tracking** - compare GPT-4 vs Claude recommendations
-- **Visual dashboards** for judging and evaluation
+- **Performance metrics** - response time, user satisfaction, engagement rates
+- **Experiment tracking** - Ready for A/B testing different models
+- **Metrics API** - Access quality scores and engagement data
 
 ---
 
@@ -156,15 +152,15 @@ Whether your 2026 resolution is to "read more diversely," "visit every continent
 
 - **Node.js** 18+ and npm
 - **Git** for version control
-- **Google Cloud account** (for Places API - optional for now)
+- **Google Cloud account** for Places API
 
 ### Installation
 
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/around-the-world-in-books.git
-   cd around-the-world-in-books
+   git clone https://github.com/Lynette7/vicarious.git
+   cd vicarious
    ```
 
 2. **Install dependencies**
@@ -189,10 +185,14 @@ Whether your 2026 resolution is to "read more diversely," "visit every continent
    GOOGLE_CLIENT_ID="your-google-client-id"
    GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
-   # Google Places API (for bookshop/library finder - optional)
+   # OpenAI API (for AI recommendations - required for AI features)
+   OPENAI_API_KEY="your-openai-api-key"
+   OPENAI_MODEL="gpt-4o-mini"  # Optional, defaults to gpt-4o-mini
+
+   # Google Places API (for bookshop/library finder - required for location features)
    NEXT_PUBLIC_GOOGLE_PLACES_API_KEY="your-google-places-api-key"
 
-   # Opik API (for observability - optional)
+   # Opik API (for observability - optional, uses local tracking by default)
    OPIK_API_KEY="your-opik-api-key"
    ```
 
