@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
-
+import RecommendationsModal from '@/components/RecommendationsModal';
 const GlobeComponent = dynamic(() => import('@/components/Globe'), {
   ssr: false,
   loading: () => (
@@ -38,6 +38,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isRecommendationsOpen, setIsRecommendationsOpen] = useState(false);
 
   // Load books from API or localStorage
   const loadBooks = useCallback(async () => {
@@ -286,6 +287,19 @@ export default function Home() {
                   {theme.id === 'renaissance' ? 'My Ledger' : 
                    theme.id === 'library' ? 'Library Card' : 'Passport'}
                 </span>
+              </button>
+              {/* AI Recommendations Button */}
+              <button
+                onClick={() => setIsRecommendationsOpen(true)}
+                className="p-2.5 sm:px-4 sm:py-2 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                style={{
+                  backgroundColor: theme.colors.accent,
+                  color: theme.colors.textOnPrimary,
+                }}
+                title="AI Recommendations"
+              >
+                <span className="sm:hidden">🤖</span>
+                <span className="hidden sm:inline">🤖 AI Coach</span>
               </button>
               
               {/* Add Book Button */}
@@ -761,6 +775,12 @@ export default function Home() {
           </div>
         </div>
       </div>
+              {/* Recommendations Modal */}
+        <RecommendationsModal
+          isOpen={isRecommendationsOpen}
+          onClose={() => setIsRecommendationsOpen(false)}
+          onBookAdded={handleBookAdded}
+        />
 
       {/* Add Book Modal */}
       <AddBookModal
