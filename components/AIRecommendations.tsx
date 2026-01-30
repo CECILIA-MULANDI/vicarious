@@ -1,30 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTheme } from '@/context/ThemeContext';
 import RecommendationCard, { BookRecommendation } from './RecommendationCard';
-// Engagement tracking via API
 
 interface AIRecommendationsProps {
-  onAddBook?: (recommendation: BookRecommendation) => void;
+  totalBooks: number;
+  onAddedToReadList?: () => void;
 }
 
-export default function AIRecommendations({ onAddBook }: AIRecommendationsProps) {
+function AIRecommendations({ totalBooks, onAddedToReadList }: AIRecommendationsProps) {
   const { theme } = useTheme();
   const { data: session } = useSession();
   const [recommendation, setRecommendation] = useState<BookRecommendation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRecommendation = async () => {
+  const fetchRecommendation = useCallback(async () => {
     if (!session?.user) {
       setError('Please sign in to get AI recommendations');
+      return;
+    }
+    if (totalBooks === 0) {
+      setError('Add some books to your reading journey first.');
       return;
     }
 
     setLoading(true);
     setError(null);
+    setRecommendation(null);
 
     try {
       const res = await fetch('/api/ai/recommend', {
@@ -34,25 +39,28 @@ export default function AIRecommendations({ onAddBook }: AIRecommendationsProps)
       });
 
       if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.noHistory) {
+          setError('Add some books to your reading journey to get personalized recommendations.');
+          return;
+        }
         throw new Error('Failed to get recommendation');
       }
 
       const data = await res.json();
       setRecommendation(data);
-      
-      // Track engagement
-      const recommendationId = `rec_${Date.now()}`;
+
       try {
         await fetch('/api/opik/engagement', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            recommendationId,
+            recommendationId: `rec_${Date.now()}`,
             action: 'viewed',
           }),
         });
-      } catch (error) {
-        console.error('Error tracking engagement:', error);
+      } catch {
+        // ignore
       }
     } catch (err) {
       console.error('Error fetching recommendation:', err);
@@ -60,56 +68,90 @@ export default function AIRecommendations({ onAddBook }: AIRecommendationsProps)
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchRecommendation();
-    }
-  }, [session]);
-
-  const handleAddBook = () => {
-    if (recommendation && onAddBook) {
-      onAddBook(recommendation);
-    }
-  };
+  }, [session?.user, totalBooks]);
 
   if (!session?.user) {
     return null;
   }
 
-  return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2
-            className="text-xl sm:text-2xl font-bold mb-1"
-            style={{
-              color: theme.colors.textPrimary,
-              fontFamily: theme.fonts.heading,
-            }}
-          >
-            🤖 AI Reading Coach
-          </h2>
-          <p
-            className="text-sm"
-            style={{ color: theme.colors.textSecondary }}
-          >
-            Get personalized book recommendations based on your reading journey
-          </p>
-        </div>
-        <button
-          onClick={fetchRecommendation}
-          disabled={loading}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+  // New users: no reading history yet
+  if (totalBooks === 0) {
+    return (
+      <div className="mb-6">
+        <h2
+          className="text-xl sm:text-2xl font-bold mb-1"
           style={{
-            backgroundColor: theme.colors.primary,
-            color: theme.colors.textOnPrimary,
+            color: theme.colors.textPrimary,
+            fontFamily: theme.fonts.heading,
           }}
         >
-          {loading ? '...' : '🔄'}
-        </button>
+          🤖 AI Reading Coach
+        </h2>
+        <p
+          className="text-sm mb-3"
+          style={{ color: theme.colors.textSecondary }}
+        >
+          Get personalized book recommendations based on your reading journey.
+        </p>
+        <div
+          className="rounded-xl p-6 text-center"
+          style={{
+            backgroundColor: theme.colors.cardBg,
+            border: `1px solid ${theme.colors.cardBorder}`,
+          }}
+        >
+          <p style={{ color: theme.colors.textSecondary }}>
+            Add some books to your reading journey first. Once you have at least one book logged, we can recommend your next read from a new country.
+          </p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="mb-6">
+      <div className="mb-4">
+        <h2
+          className="text-xl sm:text-2xl font-bold mb-1"
+          style={{
+            color: theme.colors.textPrimary,
+            fontFamily: theme.fonts.heading,
+          }}
+        >
+          🤖 AI Reading Coach
+        </h2>
+        <p
+          className="text-sm"
+          style={{ color: theme.colors.textSecondary }}
+        >
+          Get a personalized recommendation when you need your next read.
+        </p>
+      </div>
+
+      {!recommendation && !loading && !error && (
+        <div
+          className="rounded-xl p-6 text-center"
+          style={{
+            backgroundColor: theme.colors.cardBg,
+            border: `1px solid ${theme.colors.cardBorder}`,
+          }}
+        >
+          <p style={{ color: theme.colors.textSecondary }} className="mb-4">
+            Click below when you want a suggestion for your next book.
+          </p>
+          <button
+            onClick={fetchRecommendation}
+            disabled={loading}
+            className="px-6 py-2.5 rounded-lg font-medium transition-all hover:shadow-lg disabled:opacity-50"
+            style={{
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.textOnPrimary,
+            }}
+          >
+            Get Recommendation
+          </button>
+        </div>
+      )}
 
       {loading && (
         <div
@@ -119,14 +161,14 @@ export default function AIRecommendations({ onAddBook }: AIRecommendationsProps)
             border: `1px solid ${theme.colors.cardBorder}`,
           }}
         >
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 mb-4" style={{ borderColor: theme.colors.primary }}></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 mb-4" style={{ borderColor: theme.colors.primary }} />
           <p style={{ color: theme.colors.textSecondary }}>
             Analyzing your reading history and generating recommendations...
           </p>
         </div>
       )}
 
-      {error && (
+      {error && !loading && (
         <div
           className="rounded-xl p-4 mb-4"
           style={{
@@ -136,7 +178,7 @@ export default function AIRecommendations({ onAddBook }: AIRecommendationsProps)
         >
           <p style={{ color: theme.colors.textPrimary }}>{error}</p>
           <button
-            onClick={fetchRecommendation}
+            onClick={() => { setError(null); fetchRecommendation(); }}
             className="mt-2 px-4 py-2 rounded-lg text-sm"
             style={{
               backgroundColor: theme.colors.primary,
@@ -149,35 +191,28 @@ export default function AIRecommendations({ onAddBook }: AIRecommendationsProps)
       )}
 
       {!loading && !error && recommendation && (
-        <RecommendationCard
-          recommendation={recommendation}
-          onAddBook={handleAddBook}
-        />
-      )}
-
-      {!loading && !error && !recommendation && (
-        <div
-          className="rounded-xl p-6 text-center"
-          style={{
-            backgroundColor: theme.colors.cardBg,
-            border: `1px solid ${theme.colors.cardBorder}`,
-          }}
-        >
-          <p style={{ color: theme.colors.textSecondary }} className="mb-4">
-            Click the refresh button to get your first AI recommendation!
-          </p>
-          <button
-            onClick={fetchRecommendation}
-            className="px-6 py-2.5 rounded-lg font-medium"
-            style={{
-              backgroundColor: theme.colors.primary,
-              color: theme.colors.textOnPrimary,
-            }}
-          >
-            Get Recommendation
-          </button>
-        </div>
+        <>
+          <div className="flex justify-end mb-2">
+            <button
+              onClick={() => { setRecommendation(null); setError(null); }}
+              className="text-sm px-3 py-1.5 rounded-lg"
+              style={{
+                backgroundColor: theme.colors.cardBg,
+                border: `1px solid ${theme.colors.cardBorder}`,
+                color: theme.colors.textSecondary,
+              }}
+            >
+              Get another
+            </button>
+          </div>
+          <RecommendationCard
+            recommendation={recommendation}
+            onAddToReadList={onAddedToReadList}
+          />
+        </>
       )}
     </div>
   );
 }
+
+export default memo(AIRecommendations);

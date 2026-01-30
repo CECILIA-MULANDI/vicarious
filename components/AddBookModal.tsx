@@ -12,6 +12,8 @@ interface AddBookModalProps {
   onClose: () => void;
   onBookAdded: () => void;
   defaultCountry?: string;
+  defaultTitle?: string;
+  defaultAuthor?: string;
 }
 
 export default function AddBookModal({
@@ -19,6 +21,8 @@ export default function AddBookModal({
   onClose,
   onBookAdded,
   defaultCountry = '',
+  defaultTitle = '',
+  defaultAuthor = '',
 }: AddBookModalProps) {
   const { theme } = useTheme();
   const { data: session } = useSession();
@@ -31,11 +35,14 @@ export default function AddBookModal({
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // When modal opens or prefills change, sync form from props
   useEffect(() => {
-    if (defaultCountry) {
-      setCountry(defaultCountry);
+    if (isOpen) {
+      setCountry(defaultCountry || '');
+      setTitle(defaultTitle || '');
+      setAuthor(defaultAuthor || '');
     }
-  }, [defaultCountry]);
+  }, [isOpen, defaultCountry, defaultTitle, defaultAuthor]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

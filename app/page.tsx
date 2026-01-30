@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
 import RecommendationsModal from '@/components/RecommendationsModal';
@@ -19,11 +19,11 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import AuthButton from '@/components/AuthButton';
 import AIRecommendations from '@/components/AIRecommendations';
 import LocationSettings from '@/components/LocationSettings';
+import ToReadSection, { ToReadItem } from '@/components/ToReadSection';
 import { useTheme } from '@/context/ThemeContext';
 import { getBooks as getLocalBooks, getBooksByCountry as getLocalBooksByCountry } from '@/lib/storage';
 import { Book } from '@/types';
 import { getCountryName, getCountryCode } from '@/lib/countries';
-import { BookRecommendation } from '@/components/RecommendationCard';
 
 export default function Home() {
   const { theme } = useTheme();
@@ -32,6 +32,7 @@ export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | undefined>();
   const [selectedBooks, setSelectedBooks] = useState<Book[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addModalPrefill, setAddModalPrefill] = useState<{ title: string; author: string; countryName: string } | null>(null);
   const [isPassportOpen, setIsPassportOpen] = useState(false);
   const [isLocationSettingsOpen, setIsLocationSettingsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -39,6 +40,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isRecommendationsOpen, setIsRecommendationsOpen] = useState(false);
+  const [toReadRefresh, setToReadRefresh] = useState(0);
 
   // Load books from API or localStorage
   const loadBooks = useCallback(async () => {
@@ -110,58 +112,70 @@ export default function Home() {
     }
   }, [mounted, status, loadBooks]);
 
-  const updateSelectedBooks = (allBooks: Book[], countryCode?: string) => {
-    if (countryCode) {
-      const filtered = allBooks.filter(book => book.countryCode === countryCode);
-      setSelectedBooks(filtered);
+  // Keep selectedBooks in sync when books or selectedCountry changes
+  useEffect(() => {
+    if (selectedCountry) {
+      setSelectedBooks(books.filter((b) => b.countryCode === selectedCountry));
     } else {
       setSelectedBooks([]);
     }
-  };
+  }, [books, selectedCountry]);
 
-  const handleCountryClick = (countryCode: string, countryName: string) => {
+  const handleCountryClick = useCallback((countryCode: string, countryName: string) => {
     setSelectedCountry(countryCode);
-    updateSelectedBooks(books, countryCode);
-    // On mobile, open sidebar when country is selected
+    setSelectedBooks((prevBooks) => {
+      const filtered = books.filter(book => book.countryCode === countryCode);
+      return filtered;
+    });
     if (isMobile) {
       setIsSidebarOpen(true);
     }
-  };
+  }, [books, isMobile]);
 
-  const handleCountrySelectFromSidebar = (countryCode: string) => {
-    const countryName = getCountryName(countryCode);
-    handleCountryClick(countryCode, countryName);
-  };
+  const handleCountrySelectFromSidebar = useCallback((countryCode: string) => {
+    handleCountryClick(countryCode, getCountryName(countryCode));
+  }, [handleCountryClick]);
 
-  const handleBookAdded = () => {
+  const handleBookAdded = useCallback(() => {
     loadBooks();
-  };
+  }, [loadBooks]);
 
-  const handleBookDeleted = () => {
+  const handleBookDeleted = useCallback(() => {
     loadBooks();
-  };
+  }, [loadBooks]);
 
-  const handleAddBookFromRecommendation = (recommendation: BookRecommendation) => {
-    // Pre-fill the add book modal with recommendation data
-    setSelectedCountry(getCountryCode(recommendation.country) || undefined);
+  const handleAddedToReadList = useCallback(() => {
+    setToReadRefresh((n) => n + 1);
+  }, []);
+
+  const handleAddAsRead = useCallback((item: ToReadItem) => {
+    setAddModalPrefill({
+      title: item.title,
+      author: item.author,
+      countryName: item.countryName,
+    });
     setIsAddModalOpen(true);
-    // Note: We'd need to modify AddBookModal to accept initial values
-    // For now, user will need to manually enter the book
-  };
+  }, []);
 
-  // Calculate books by country from the books state
-  const booksByCountry: Record<string, Book[]> = {};
-  books.forEach((book) => {
-    if (!booksByCountry[book.countryCode]) {
-      booksByCountry[book.countryCode] = [];
-    }
-    booksByCountry[book.countryCode].push(book);
-  });
-  
-  const booksCountByCountry: Record<string, number> = {};
-  Object.entries(booksByCountry).forEach(([code, countryBooks]) => {
-    booksCountByCountry[code] = countryBooks.length;
-  });
+  // Memoize derived data so Globe and sidebar don't get new references every render
+  const booksByCountry = useMemo(() => {
+    const byCountry: Record<string, Book[]> = {};
+    books.forEach((book) => {
+      if (!byCountry[book.countryCode]) {
+        byCountry[book.countryCode] = [];
+      }
+      byCountry[book.countryCode].push(book);
+    });
+    return byCountry;
+  }, [books]);
+
+  const booksCountByCountry = useMemo(() => {
+    const counts: Record<string, number> = {};
+    books.forEach((book) => {
+      counts[book.countryCode] = (counts[book.countryCode] ?? 0) + 1;
+    });
+    return counts;
+  }, [books]);
 
   const totalBooks = books.length;
   const totalCountries = mounted ? Object.keys(booksCountByCountry).length : 0;
@@ -566,10 +580,20 @@ export default function Home() {
             </div>
           
           <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+            {/* To Read list */}
+            {!selectedCountry && (
+              <ToReadSection
+                refreshTrigger={toReadRefresh}
+                onAddAsRead={handleAddAsRead}
+              />
+            )}
             {/* AI Recommendations Section */}
             {!selectedCountry && (
               <div className="mb-6">
-                <AIRecommendations onAddBook={handleAddBookFromRecommendation} />
+                <AIRecommendations
+                  totalBooks={totalBooks}
+                  onAddedToReadList={handleAddedToReadList}
+                />
               </div>
             )}
 
@@ -785,9 +809,14 @@ export default function Home() {
       {/* Add Book Modal */}
       <AddBookModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setAddModalPrefill(null);
+        }}
         onBookAdded={handleBookAdded}
-        defaultCountry={selectedCountry ? getCountryName(selectedCountry) : ''}
+        defaultCountry={addModalPrefill?.countryName ?? (selectedCountry ? getCountryName(selectedCountry) : '')}
+        defaultTitle={addModalPrefill?.title ?? ''}
+        defaultAuthor={addModalPrefill?.author ?? ''}
       />
 
       {/* Passport Modal */}

@@ -72,6 +72,22 @@ model User {
   accounts      Account[]
   sessions      Session[]
   books         Book[]
+  toReadItems   ToReadItem[]
+}
+
+model ToReadItem {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  countryCode String
+  countryName String
+  source      String?  // e.g. 'recommendation'
+  
+  createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
 
 model Book {

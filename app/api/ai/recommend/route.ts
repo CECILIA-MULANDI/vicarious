@@ -34,6 +34,13 @@ export async function POST(request: NextRequest) {
       endDate: book.endDate || undefined,
     }));
 
+    if (readingHistory.length === 0) {
+      return NextResponse.json(
+        { noHistory: true, error: 'Add some books to your reading journey to get personalized recommendations.' },
+        { status: 400 }
+      );
+    }
+
     // Generate recommendation
     const recommendation = await generateRecommendation(
       session.user.id,

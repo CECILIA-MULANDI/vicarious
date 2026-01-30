@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import Globe from 'react-globe.gl';
 import * as d3geo from 'd3-geo';
 import { getCountryColorById } from '@/lib/colors';
@@ -31,7 +31,7 @@ interface GlobeProps {
   onCountryClick: (countryCode: string, countryName: string) => void;
 }
 
-export default function GlobeComponent({ booksByCountry, selectedCountry, onCountryClick }: GlobeProps) {
+function GlobeComponent({ booksByCountry, selectedCountry, onCountryClick }: GlobeProps) {
   const { theme } = useTheme();
   const globeConfig = theme.globe;
   const globeEl = useRef<any>();
@@ -347,3 +347,5 @@ export default function GlobeComponent({ booksByCountry, selectedCountry, onCoun
     </div>
   );
 }
+
+export default memo(GlobeComponent);
